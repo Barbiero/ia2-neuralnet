@@ -36,25 +36,47 @@ import org.neuroph.nnet.Perceptron;
  */
 public class UseNeuralNtw {
     
+    /**
+     * coloca como 'true' se deseja recriar conjuntos de dados
+     */
+    static public final boolean CREATE_NEW_SETS = false;
+    
+    /**
+     * coloca como 'true' se deseja re-treinar a rede neural
+     */
+    static public final boolean CREATE_NEW_NNET = true;
+    
     static public void main(String... args) throws IOException {
         
-        //DataSet trainingSet = IA2PDFReader.createTrainingSet(IA2PDFReader.pdfsDeIA, IA2PDFReader.pdfsNaoDeIA);
-        //trainingSet.saveAsTxt("/home/barbiero/Documents/trainingSet.txt", " ");
-        //trainingSet.save("trainingSet.ds");
+        DataSet trainingSet, toReadSet;
+        NeuralNetwork net;
         
-        //DataSet toReadSet = IA2PDFReader.getDataFromAllFiles();
-        //toReadSet.saveAsTxt("/home/barbiero/Documents/allFilesSet.txt", " ");
-        //toReadSet.save("toReadSet.ds");
+        if(CREATE_NEW_SETS) {
+            trainingSet = IA2PDFReader.createTrainingSet(IA2PDFReader.pdfsDeIA, IA2PDFReader.pdfsNaoDeIA);
+            trainingSet.save("trainingSet.ds");
+
+            toReadSet = IA2PDFReader.getDataFromAllFiles();
+            toReadSet.save("toReadSet.ds");
+        }
         
-        DataSet trainingSet = DataSet.load("trainingSet.ds");
-        DataSet toReadSet = DataSet.load("toReadSet.ds");
+        if(CREATE_NEW_NNET) {
+            trainingSet = DataSet.load("trainingSet.ds");
+            
+            net = new Perceptron(IA2PDFReader.palavrasDeIA.length, 1);
+            System.out.println("Begin learning...");
+            net.learn(trainingSet);
+            System.out.println("Learning complete.");
+            net.save("trainedNetwork.nnet");
+        } else {
+            System.out.println("Reading NNet from file trainedNetwork.nnet");
+            net = NeuralNetwork.createFromFile("trainedNetwork.nnet");
+            System.out.println("Done.");
+        }
         
-        NeuralNetwork net = new Perceptron(12, 1);
-        System.out.println("Begin learning...");
-        net.learn(trainingSet);
-        System.out.println("Learning complete.");
+        toReadSet = DataSet.load("toReadSet.ds");
         
-        System.out.println("\nLet's test em all!");
+        
+        System.out.println("\nLet's read em all!");
         ArrayList<String> textosQueSaoDeIA = new ArrayList<>();
         
         for(DataSetRow dsr : toReadSet) {
@@ -66,8 +88,16 @@ public class UseNeuralNtw {
             }
         }
         
-        System.out.println("Textos que sao de IA: ");
-        textosQueSaoDeIA.stream().map(s-> s+" ").forEach(System.out::print);
+        //ordenação para a saida sair organizada
+        textosQueSaoDeIA.sort((s1, s2) -> {
+            Integer pdf_num = Integer.parseInt(s1.replaceAll("\\D", ""));
+            Integer pdf2_num = Integer.parseInt(s2.replaceAll("\\D", ""));
+            
+            return pdf_num.compareTo(pdf2_num);
+        });
+        
+        System.out.println("AI texts: ");
+        textosQueSaoDeIA.forEach((s) -> System.out.print(s+" "));
         System.out.println();
     }
     
