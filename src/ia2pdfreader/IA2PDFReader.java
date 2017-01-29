@@ -6,295 +6,210 @@
 package ia2pdfreader;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.neuroph.core.data.DataSet;
+import org.neuroph.core.data.DataSetRow;
+import org.neuroph.util.data.norm.MaxMinNormalizer;
 
 /**
  *
  * @author barbiero
  */
 public class IA2PDFReader {
-
-    static public List<List<String> > keywords = 
-    new ArrayList<>(
-        Arrays.asList(
-            Arrays.asList(
-                    "Financial",
-                "Cognitve simulation",
-                "Philosophical foundations"
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
-        
-            
-            Arrays.asList(
-                "Cartography",
-                "Computer vision",
-                "Decision support",
-                "Education",
-                "Games and infotainment",
-                "Industrial automation",
-                "Law",
-                "Mathematics",
-                "Medicine and science",
-                "Military",
-                "Natural language interfaces",
-                "Office automation",
-                "Space",
-                "Transportation"
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
-        
-            Arrays.asList(
-                "Automatic analysis of algorithms",
-                "Program modification",
-                "Program synthesis",
-                "Program transformation",
-                "Program verification"
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
-        
-            Arrays.asList(
-                "Answer extraction",
-                "reason extraction",
-                "Constraint-based processing",
-                "Deduction",
-                "Inference engines",
-                "Logic processing",
-                "Logic programming",
-                "Mathematical induction",
-                "Metatheory",
-                "Nonmonotonic reasoning",
-                "belief revision",
-                "Resolution",
-                "Rule-based processing",
-                "Uncertainty",
+    
+    static String[] palavrasDeIA = {
+                "inteligence",
+                "artificial",
+                "simulation",
+                "learning",
+                "machine",
+                "genetic",
+                "algorithm",
+                "perceptron",
                 "fuzzy",
-                "probabilistic reasoning"
-
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
-        
-        
+                "selection",
+                "optimalgeneration",
+                "dynamicprogramming"
+    };
     
-            Arrays.asList(
-                "Agent communication languages",
-                "Distributed representations",
-                "Frames and scripts",
-                "Knowledge base management",
-                "Knowledge base verification",
-                "Modal logic",
-                "Predicate logic",
-                "Relation systems",
-                "Representation languages",
-                "Representations (procedural and rulebased)",
-                "Semantic networks",
-                "Storage mechanisms",
-                "Temporal logic"
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
+    static String[] pdfsNaoDeIA = {
         
-            Arrays.asList("Expert and knowledge-intensive system tools and techniques")
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
-        
-            Arrays.asList(
-                "Analogies",
-                "Concept learning",
-                "Connectionism and neural nets",
-                "Heuristics design",
-                "Induction",
-                "Knowledge acquisition",
-                "Machine learning",
-                "Language acquisition",
-                "Parameter learning"
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
-
-            Arrays.asList(
-                "Discourse",
-                "Language generation",
-                "Language models",
-                "Language parsing and understanding",
-                "Language summarization",
-                "Machine translation",
-                "Speech recognition and synthesis",
-                "Text analysis",
-                "Web text analysis"
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
-        
-            Arrays.asList(
-                "Backtracking",
-                "Constraint satisfaction",
-                "Control theory",
-                "Dynamic programming",
-                "Graph and tree search strategies",
-                "Heuristic methods",
-                "Plan execution, formation, and generation",
-                "Scheduling"
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
-
-            Arrays.asList(
-                "Autonomous vehicles",
-                "Biorobotics",
-                "Commercial robots and applications",
-                "Kinematics and dynamics",
-                "Manipulators",
-                "Nanorobots",
-                "Neuromorphic computing",
-                "Operator interfaces",
-                "Propelling mechanisms",
-                "Sensors",
-                "Workcell organization and planning",
-                "Vision"
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
-
-            Arrays.asList(
-                "3D/stereo scene analysis",
-                "Architecture and control structures",
-                "Intensity, color, photometry, and thresholding",
-                "Modeling and recovery of physical attributes",
-                "Motion",
-                "Perceptual reasoning",
-                "Representations, data structures, and transforms",
-                "Shape",
-                "Texture",
-                "Video analysis"
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
-        
-            Arrays.asList(
-                "Coherence and coordination",
-                "Intelligent agents",
-                "Languages and structures",
-                "Multiagent systems"
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
-        
-            Arrays.asList(
-                "Intelligent Web service languages",
-                "Internet reasoning services",
-                "Ontology design",
-                "Ontology languages"
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList()),
-        
-            Arrays.asList(
-                "Knowledge acquisition",
-                "Knowledge engineering methodologies",
-                "Knowledge life cycles",
-                "Knowledge maintenance",
-                "Knowledge modeling",
-                "Knowledge personalization and customization",
-                "Knowledge publishing",
-                "Knowledge retrieval",
-                "Knowledge reuse",
-                "Knowledge valuation"
-            )
-            .stream()
-            .map(s -> s.toLowerCase().replaceAll("\\s+",""))
-            .collect(Collectors.toList())
-        )
-    );
+        "1.pdf", "7.pdf", "8.pdf", "12.pdf", "24.pdf", "71.pdf", "68.pdf", "14.pdf",
+        "180.pdf", "308.pdf"
+    };
+    static String[] pdfsDeIA = {
+        "2.pdf", "102.pdf", "95.pdf", "9.pdf", "13.pdf", "6.pdf", "339.pdf", "325.pdf",
+        "21.pdf"
+    };
     
-    public static void main(String[] args) {
-
-        
-        String[] filesToRead = {
-            "2.pdf", "6.pdf", "9.pdf", "25.pdf", "102.pdf", "227.pdf", "13.pdf", "14.pdf", "12.pdf"
-        };
-        
+    static final public String PDF_FOLDER = "/home/barbiero/workspace/jcr/";
+    
+    static public class DocInfo {
+        String file;
+        String text;
+        int totalWords;
+        SortedMap<String, Double> wordFrequency = new TreeMap<>();
+    }
+    
+    
+    
+    static DataSetRow getDataSetRowFromFile(String pdfFile)
+    {
+        PDFTextStripper stripper = null;
         try {
-            for(String file : filesToRead) {
-                PDDocument doc = PDDocument.load(new File("/home/barbiero/workspace/jcr/" + file));
-
-                String text = new PDFTextStripper().getText(doc).toLowerCase().replaceAll("\\s+", "");
-                System.out.println("********* file " + file + "************");
-                for(int category = 0; category < keywords.size(); category++)
-                {
-                    System.out.println("CATEGORY " + category);
-                    keywords.get(category).forEach( (String s) -> {
-                        Pattern p = Pattern.compile(s);
-                        Matcher m = p.matcher(text);
-                        int count = 0;
-                        while(m.find()) count++;
-
-                        System.out.println(s+": " + count);
-                    });
-                    System.out.println("");
-                }
-            }
-            
-            
+            stripper = new PDFTextStripper();
         } catch (IOException ex) {
             Logger.getLogger(IA2PDFReader.class.getName()).log(Level.SEVERE, null, ex);
         }
+        if(stripper == null){
+            return null;
+        }
         
+        try(PDDocument doc = PDDocument.load(new File(PDF_FOLDER.concat(pdfFile))) ) {
+            String text = stripper.getText(doc).toLowerCase();
+
+            int totalWords = text.split("(?U)[^\\p{Alpha}0-9']+").length;
+            text = text.replaceAll("\\s+", "");
+
+            double[] inputs = new double[palavrasDeIA.length];
+            for(int i = 0; i < palavrasDeIA.length; i++) {
+                Pattern p = Pattern.compile(palavrasDeIA[i]);
+                Matcher m = p.matcher(text);
+                int count = 0;
+                while(m.find()) count++;
+
+                inputs[i] = (double)count / (double)totalWords;
+            }
+            DataSetRow dsr = new DataSetRow(inputs);
+            dsr.setLabel(pdfFile);
+            return dsr;
+        } catch(FileNotFoundException ex) {
+            return null;
+        }
+        catch (IOException ex) {
+            Logger.getLogger(IA2PDFReader.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
     
-        /*//Abrindo um PDF
-        String filename = "pdfs/1.pdf";
-        System.out.println("Lendo arquivo " + filename);
+    
+    static DataSet createTrainingSet(String[] pdfsDeIA, String[] pdfsNaoDeIA) {
+        return createTrainingSet(Arrays.asList(pdfsDeIA), Arrays.asList(pdfsNaoDeIA));
+    }
+    
+    
+    static DataSet createTrainingSet(List<String> pdfsDeIA, List<String> pdfsNaoDeIA)
+    {
+        DataSet ds = new DataSet(palavrasDeIA.length, 1); //(entradas, saida)
+        //ds.setColumnNames(palavrasDeIA);
+        //Ler arquivos de IA
+        pdfsDeIA.forEach(file -> {
+            DataSetRow dsr = getDataSetRowFromFile(file);
+            if(dsr != null) { 
+                dsr.setDesiredOutput(new double[]{1.0});
+                ds.addRow(dsr); }
+        });
+        //agora os de nao ia
+        pdfsNaoDeIA.forEach(file -> {
+            DataSetRow dsr = getDataSetRowFromFile(file);
+            if(dsr != null) {    
+                dsr.setDesiredOutput(new double[]{0.0});
+                ds.addRow(dsr);
+            }
+        });
         
-        PDDocument doc = PDDocument.load(new File(filename));
-        String text = new PDFTextStripper().getText(doc);
-        List<String> words = Arrays.asList(text.split("(?U)[^\\p{Alpha}0-9']+"));
+        //normalizar os dados para facil processamento
+        new MaxMinNormalizer().normalize(ds);
         
-        Map<String, Integer> wordFrequency = words.parallelStream().
-                collect(Collectors.toConcurrentMap(w -> w, w -> 1, Integer::sum));
+        return ds;
+    }
+    
+    static DataSet getDataFromAllFiles() throws IOException 
+    {
+        DataSet ds = new DataSet(palavrasDeIA.length);
         
-        int totalFrequency = wordFrequency.values().parallelStream().reduce(0, Integer::sum, Integer::sum);
+        IntStream.rangeClosed(1, 341).forEach(i -> {
+            String file = i + ".pdf";
+            DataSetRow dsr = getDataSetRowFromFile(file);
+            if(dsr != null) {
+                dsr.setDesiredOutput(new double[]{0.0});
+                ds.addRow(dsr);
+            }
+        });
+        //normalizar os dados para facil processamento
+        new MaxMinNormalizer().normalize(ds);
         
-        int totalWords = wordFrequency.keySet().size();
-        //media de frequencia das palavras
-        double meanFrequency = (double)totalFrequency / (double)totalWords;
+        return ds;
+    }
+    
+    static List<DocInfo> readInputFromAllFiles() throws IOException
+    {
+        //espera-se que existam ~275 arquivos, assim o map tem que trabalhar menos
+        //durante a criação
+        List<DocInfo> fileInputs = new ArrayList<>(275);
         
-        //calculo da variancia
-        double variance = wordFrequency.values().parallelStream()
-                .map((value) -> ((value - meanFrequency) * (value - meanFrequency))/totalFrequency)
-                .reduce(0.0, Double::sum, Double::sum);
+        //singleton!
+        PDFTextStripper stripper = new PDFTextStripper();
         
-        System.out.println("Total de palavras: " + totalWords);
-        System.out.println("Total de frequencia: " + totalFrequency);
-        System.out.println("Media de frequencia de palavras: " + String.format("%.2f", meanFrequency));
-        System.out.println("Variancia: " + String.format("%.2f", variance));
-        System.out.println("Desvio Padrao: " + String.format("%.2f", Math.sqrt(variance)));*/
+        IntStream.rangeClosed(1, 341).forEach(i -> {
+            try{
+                PDDocument doc = null;
+                try {
+                    doc = PDDocument.load(new File("/home/barbiero/workspace/jcr/" + i + ".pdf"));
+                } catch(FileNotFoundException e) {
+                    //arquivo nao existe, ignorar
+                }
+                
+                if(doc == null) {return;}
+            
+                DocInfo dInfo = new DocInfo();
+                dInfo.file = i + ".pdf";
+                
+                {
+                    //escopo avulso mantem o tempo de vida de 'tmpText' o mais curto possivel
+                    String tmpText = stripper.getText(doc).toLowerCase();
+
+                    dInfo.totalWords = tmpText.split("(?U)[^\\p{Alpha}0-9']+").length;
+                    dInfo.text = tmpText.replaceAll("\\s+", "");
+                }
+                
+                for(String s : palavrasDeIA) {
+                    Pattern p = Pattern.compile(s);
+                    Matcher m = p.matcher(dInfo.text);
+                    int count = 0;
+                    while(m.find()) count++;
+                    
+                    dInfo.wordFrequency.put(s, (double)count / (double)dInfo.totalWords);
+                }
+                
+                fileInputs.add(dInfo);
+                doc.close();
+                
+            } catch(IOException ex) {
+                Logger.getLogger(IA2PDFReader.class.getName()).log(Level.SEVERE, null, ex);
+                
+            }
+        });
+        return fileInputs;
+    }
+    
 }
